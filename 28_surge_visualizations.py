@@ -1,6 +1,12 @@
 import sys
 import os
 
+import logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 # Add parent directory to path to import plot_style
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from plot_style import set_tufte_defaults, apply_tufte_style, save_tufte_figure, COLORS
@@ -26,16 +32,16 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from plot_style import set_tufte_defaults, apply_tufte_style, save_tufte_figure, COLORS
 
 
-print("=" * 70)
-print("Blog 28: Surge and Overpressure Modeling - Visualizations")
-print("=" * 70)
+logger.info("=" * 70)
+logger.info("Blog 28: Surge and Overpressure Modeling - Visualizations")
+logger.info("=" * 70)
 
 plt.rcParams['font.family'] = 'serif'
 
 # ============================================================================
 # Generate Synthetic Surge Training Data
 # ============================================================================
-print("\nGenerating synthetic transient scenarios...")
+logger.info("\nGenerating synthetic transient scenarios...")
 
 np.random.seed(2025)
 N = 5000
@@ -66,13 +72,13 @@ df = pd.DataFrame({
     'peak_overpress_psig': peak_overpress
 })
 
-print(f"✓ Generated {len(df):,} scenarios")
-print(f"Peak overpressure range: {peak_overpress.min():.1f} - {peak_overpress.max():.1f} psig")
+logger.info(f"✓ Generated {len(df):,} scenarios")
+logger.info(f"Peak overpressure range: {peak_overpress.min():.1f} - {peak_overpress.max():.1f} psig")
 
 # ============================================================================
 # Train Surrogate Model
 # ============================================================================
-print("\nTraining surrogate model...")
+logger.info("\nTraining surrogate model...")
 
 X = df.drop(columns=['peak_overpress_psig'])
 y = df['peak_overpress_psig']
@@ -85,12 +91,12 @@ model = Pipeline([
 ])
 
 model.fit(X_train, y_train)
-print("✓ Model trained")
+logger.info("✓ Model trained")
 
 # ============================================================================
 # Visualization 1: Surge vs. Closure Time (Multi-velocity)
 # ============================================================================
-print("\nGenerating surge vs. closure time curves...")
+logger.info("\nGenerating surge vs. closure time curves...")
 
 set_tufte_defaults()
 
@@ -135,12 +141,12 @@ ax.annotate('Safe Zone\n(Below MAOP)',
 plt.tight_layout()
 save_tufte_figure('28_surge_vs_closure_time.png')
 plt.close()
-print("✓ Surge curves saved")
+logger.info("✓ Surge curves saved")
 
 # ============================================================================
 # Visualization 2: Feature Importance
 # ============================================================================
-print("Generating feature importance plot...")
+logger.info("Generating feature importance plot...")
 
 # Extract feature importance
 feature_names = X.columns.tolist()
@@ -171,19 +177,19 @@ apply_tufte_style(ax, show_grid=False)
 plt.tight_layout()
 save_tufte_figure('28_surge_feature_importance.png')
 plt.close()
-print("✓ Feature importance saved")
+logger.info("✓ Feature importance saved")
 
 # ============================================================================
 # Summary Statistics
 # ============================================================================
-print("\n" + "=" * 70)
-print("All visualizations generated successfully!")
-print("=" * 70)
-print("\nFiles created:")
-print("  - 28_surge_vs_closure_time.png")
-print("  - 28_surge_feature_importance.png")
+logger.info("\n" + "=" * 70)
+logger.info("All visualizations generated successfully!")
+logger.info("=" * 70)
+logger.info("\nFiles created:")
+logger.info("  - 28_surge_vs_closure_time.png")
+logger.info("  - 28_surge_feature_importance.png")
 
-print("\nModel Performance:")
+logger.info("\nModel Performance:")
 y_pred = model.predict(X_test)
 from sklearn.metrics import mean_absolute_error, r2_score
 
@@ -195,14 +201,14 @@ from tda_utils import setup_tufte_plot, TufteColors
 
 mae = mean_absolute_error(y_test, y_pred)
 r2 = r2_score(y_test, y_pred)
-print(f"  Test MAE: {mae:.2f} psig")
-print(f"  Test R²: {r2:.4f}")
+logger.info(f"  Test MAE: {mae:.2f} psig")
+logger.info(f"  Test R²: {r2:.4f}")
 
-print("\nFeature Importance Ranking:")
+logger.info("\nFeature Importance Ranking:")
 for i, idx in enumerate(indices):
-    print(f"  {i+1}. {feature_names[idx]}: {importances[idx]:.1%}")
+    logger.info(f"  {i+1}. {feature_names[idx]}: {importances[idx]:.1%}")
 
-print("\nSafe Closure Times (at MAOP=260 psig):")
+logger.info("\nSafe Closure Times (at MAOP=260 psig):")
 for v in velocities:
     probe = pd.DataFrame({
         'linepack': 1.0,
@@ -216,7 +222,7 @@ for v in velocities:
     safe_idx = np.where(peaks < 260)[0]
     if len(safe_idx) > 0:
         min_safe = closure_grid[safe_idx[0]]
-        print(f"  Velocity {v:.1f} m/s: ≥{min_safe:.1f} seconds")
+        logger.info(f"  Velocity {v:.1f} m/s: ≥{min_safe:.1f} seconds")
     else:
-        print(f"  Velocity {v:.1f} m/s: No safe closure time")
+        logger.info(f"  Velocity {v:.1f} m/s: No safe closure time")
 
