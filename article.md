@@ -1,16 +1,17 @@
+---
+author: "Kyle Jones"
+date_published: "October 30, 2025"
+date_exported_from_medium: "November 10, 2025"
+canonical_link: "https://medium.com/@kyle-t-jones/using-ml-for-surge-and-overpressure-surrogate-modeling-for-real-time-pipeline-transient-analysis-3ba2419dfd19"
+---
+
 # Using ML for Surge and Overpressure Surrogate Modeling for Real-Time Pipeline Transient Analysis This article explores using a surrogate model to predicts peak
-overpressure in oil pipelines in milliseconds, enabling operators to
-answer...
+overpressure in oil pipelines in milliseconds, enabling operators to answer...
 
 ### Using ML for Surge and Overpressure Surrogate Modeling for Real-Time Pipeline Transient Analysis
-This article explores using a surrogate model to predicts peak
-overpressure in oil pipelines in milliseconds, enabling operators to
-answer "what-if" questions instantly: *"If I close this valve in 5
-seconds instead of 2, what will the peak pressure be?"*
+This article explores using a surrogate model to predicts peak overpressure in oil pipelines in milliseconds, enabling operators to answer "what-if" questions instantly: *"If I close this valve in 5 seconds instead of 2, what will the peak pressure be?"*
 
-Let's start by considering what causes pressure surges in pipelines.
-Pressure surges (water hammer, surge) occur when fluid velocity changes
-rapidly:
+Let's start by considering what causes pressure surges in pipelines. Pressure surges (water hammer, surge) occur when fluid velocity changes rapidly:
 
 **Joukowsky equation (simplified):**
 
@@ -18,10 +19,7 @@ rapidly:
 ΔP = ρ × a × Δv
 ```
 
-Where: `ΔP` = Pressure rise (Pa)
-`ρ` = Fluid density (kg/m³)
-`a` = Acoustic wave speed (m/s)
-`Δv` = Change in velocity (m/s)
+Where: `ΔP` = Pressure rise (Pa) `ρ` = Fluid density (kg/m³) `a` = Acoustic wave speed (m/s) `Δv` = Change in velocity (m/s)
 
 **Example:**
 
@@ -31,22 +29,15 @@ Where: `ΔP` = Pressure rise (Pa)
 
 **MPa = 370 psi**
 
-For a pipeline operating at 180 psig, this surge brings peak pressure to
-**550 psig** --- catastrophic if MAOP is 250 psig.
+For a pipeline operating at 180 psig, this surge brings peak pressure to **550 psig** --- catastrophic if MAOP is 250 psig.
 
 ### Why Operators Can't Rely on "Conservative Rules of Thumb"
 Traditional approach: *"Never close valves faster than 10 seconds"*
 
-That works most of the time but it could be too conservative for
-low-flow scenarios where slow closures increase response time, risking
-spills. Rules of thumb also ignore system state like pump status that
-affect surge magnitude. And this simple approach is not using a
-quantitative risk assessment based on the margins and alternatives avail
-to the business.
+That works most of the time but it could be too conservative for low-flow scenarios where slow closures increase response time, risking spills. Rules of thumb also ignore system state like pump status that affect surge magnitude. And this simple approach is not using a quantitative risk assessment based on the margins and alternatives avail to the business.
 
 ### Physics-Based Synthetic Scenarios
-Since real transient data is scarce (operators avoid surge events!), we
-can generate synthetic scenarios using physics.
+Since real transient data is scarce (operators avoid surge events!), we can generate synthetic scenarios using physics.
 
 ### Transient Physics Model (Simplified)
 ```python
@@ -143,19 +134,9 @@ print(f'Instant closure surge: {instant_surge.mean():.1f} ± {instant_surge.std(
 ```
 
 ### Surrogate Model Training
-Gradient boosting performed extremely well (almost too well) on the
-synthetic data. R² = 0.991 meaning model explains 99.1% of the variance
-in peak overpressure (again, this is crazy high because we are using
-simulated data). MAE = 1.87 psi, meaning that on average, predictions
-are within 2 psi of true peak pressure.
+Gradient boosting performed extremely well (almost too well) on the synthetic data. R² = 0.991 meaning model explains 99.1% of the variance in peak overpressure (again, this is crazy high because we are using simulated data). MAE = 1.87 psi, meaning that on average, predictions are within 2 psi of true peak pressure.
 
-We can look at which features are driving these results. Not
-surprisingly, the Joukowsky relationship is front and center (Flow
-velocity dominates surge magnitude \[velocity_ms (35%)\]). In this
-model, we can see that faster closures are inversely proportional to
-higher surges \[closure_time_s (28%)\]. Pump failures amplify surges
-significantly \[pump_trip (18%)\]. \[elevation_drop_m (12%)\] and
-\[linepack, temperature (7%)\] have minor effects.
+We can look at which features are driving these results. Not surprisingly, the Joukowsky relationship is front and center (Flow velocity dominates surge magnitude \[velocity_ms (35%)\]). In this model, we can see that faster closures are inversely proportional to higher surges \[closure_time_s (28%)\]. Pump failures amplify surges significantly \[pump_trip (18%)\]. \[elevation_drop_m (12%)\] and \[linepack, temperature (7%)\] have minor effects.
 
 ### What-If Analysis: Safe Closure Time Calculator
 ```python
@@ -213,8 +194,7 @@ Minimum safe closure time: 4.8 seconds
 Peak pressure at safe time: 258.3 psig
 ```
 
-Instead of using a fixed "10-second rule," operators know they can
-safely close in 4.8 seconds --- reducing emergency response time by 52%.
+Instead of using a fixed "10-second rule," operators know they can safely close in 4.8 seconds --- reducing emergency response time by 52%.
 
 ### Visualizing Surge Curves for Different Velocities
 ```python
@@ -255,23 +235,12 @@ plt.savefig('surge_vs_closure_time.png', dpi=300, bbox_inches='tight')
 plt.show()
 ```
 
-In this scenario, High velocity (2.5 m/s, red) requires \>8 seconds
-closure to stay below MAOP; Medium velocity (1.5 m/s, orange) is safe at
-\>4 seconds; and low velocity (0.8 m/s, green) is always safe, even at
-1-second closure.
+In this scenario, High velocity (2.5 m/s, red) requires \>8 seconds closure to stay below MAOP; Medium velocity (1.5 m/s, orange) is safe at \>4 seconds; and low velocity (0.8 m/s, green) is always safe, even at 1-second closure.
 
-This means that we can use current velocity to determine safe operating
-envelope. Real-time predictions enable dynamic closure time limits based
-on actual flow conditions, not conservative fixed rules.
+This means that we can use current velocity to determine safe operating envelope. Real-time predictions enable dynamic closure time limits based on actual flow conditions, not conservative fixed rules.
 
 ### So what?
-We can use surrogate models to predict peak overpressure in \<10ms vs.
-15--30 minutes for full simulation. These models can be "physics
-informed" by using training data generated from simplified transient
-physics ensures predictions respect Joukowsky relationships and conserve
-mass/momentum. As a result, operators can get instant "safe closure
-time" guidance based on current SCADA conditions, not conservative fixed
-rules.
+We can use surrogate models to predict peak overpressure in \<10ms vs. 15--30 minutes for full simulation. These models can be "physics informed" by using training data generated from simplified transient physics ensures predictions respect Joukowsky relationships and conserve mass/momentum. As a result, operators can get instant "safe closure time" guidance based on current SCADA conditions, not conservative fixed rules.
 
 ### Complete Implementation
 ```python
@@ -489,10 +458,3 @@ def record_transient_event(scada_data, peak_pressure_measured):
     if len(historical_events) >= 20:
         retrain_model(historical_events)
 ```
-::::::::By [Kyle Jones](https://medium.com/@kyle-t-jones) on
-[October 30, 2025](https://medium.com/p/3ba2419dfd19).
-
-[Canonical
-link](https://medium.com/@kyle-t-jones/using-ml-for-surge-and-overpressure-surrogate-modeling-for-real-time-pipeline-transient-analysis-3ba2419dfd19)
-
-Exported from [Medium](https://medium.com) on November 10, 2025.
