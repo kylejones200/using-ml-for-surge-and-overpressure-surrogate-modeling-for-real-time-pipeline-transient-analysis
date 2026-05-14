@@ -1,3 +1,4 @@
+import signalplot
 import sys
 import os
 
@@ -7,9 +8,6 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
-# Add parent directory to path to import plot_style
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from plot_style import set_tufte_defaults, apply_tufte_style, save_tufte_figure, COLORS
 
 """
 Blog 28: Surge and Overpressure Modeling - Visualization Generator
@@ -25,13 +23,10 @@ from sklearn.pipeline import Pipeline
 from sklearn.model_selection import train_test_split
 
 
-# Add parent directory to path to import plot_style
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 logger.info("Blog 28: Surge and Overpressure Modeling - Visualizations")
 
-plt.rcParams['font.family'] = 'serif'
 
 # ============================================================================
 # Generate Synthetic Surge Training Data
@@ -93,7 +88,7 @@ logger.info("✓ Model trained")
 # ============================================================================
 logger.info("\nGenerating surge vs. closure time curves...")
 
-set_tufte_defaults()
+signalplot.apply(font_family='serif')
 
 fig, ax = plt.subplots(figsize=(10, 6))
 
@@ -115,26 +110,26 @@ for v, style, label in zip(velocities, styles, labels):
     })
     
     predicted = model.predict(probe)
-    ax.plot(closure_grid, predicted, color=COLORS['black'], 
+    ax.plot(closure_grid, predicted, color="#2b2b2b", 
             linestyle=style, linewidth=2, label=label, alpha=0.85)
 
 # Add MAOP line (use accent color to call out the critical threshold)
-ax.axhline(y=260, color=COLORS['accent_red'], linestyle='-', linewidth=2, 
+ax.axhline(y=260, color="#d62728", linestyle='-', linewidth=2, 
            label='MAOP (260 psig)', alpha=0.8)
 
 ax.set_xlabel('Valve Closure Time (seconds)')
 ax.set_ylabel('Predicted Peak Overpressure (psig)')
 ax.set_title('Surge vs. Closure Time by Flow Velocity', pad=15)
 ax.legend(loc='upper right', frameon=False)
-apply_tufte_style(ax, show_grid=False)
+signalplot.tidy_axes(ax)
 
 # Add annotation
 ax.annotate('Safe Zone\n(Below MAOP)', 
-            xy=(8, 230), fontsize=9, color=COLORS['gray'],
+            xy=(8, 230), fontsize=9, color="#a0a0a0",
             ha='center', style='italic', alpha=0.7)
 
 plt.tight_layout()
-save_tufte_figure('28_surge_vs_closure_time.png')
+signalplot.save('28_surge_vs_closure_time.png')
 plt.close()
 logger.info("✓ Surge curves saved")
 
@@ -153,7 +148,7 @@ indices = np.argsort(importances)[::-1]
 fig, ax = plt.subplots(figsize=(10, 6))
 
 bars = ax.bar(range(len(importances)), importances[indices],
-              color=COLORS['white'], edgecolor=COLORS['black'], linewidth=1.5, alpha=0.9)
+              color="#ffffff", edgecolor="#2b2b2b", linewidth=1.5, alpha=0.9)
 
 ax.set_xticks(range(len(importances)))
 ax.set_xticklabels([feature_names[i] for i in indices], rotation=45, ha='right')
@@ -167,10 +162,10 @@ for i, bar in enumerate(bars):
             f'{importances[indices[i]]:.1%}',
             ha='center', va='bottom', fontsize=9)
 
-apply_tufte_style(ax, show_grid=False)
+signalplot.tidy_axes(ax)
 
 plt.tight_layout()
-save_tufte_figure('28_surge_feature_importance.png')
+signalplot.save('28_surge_feature_importance.png')
 plt.close()
 logger.info("✓ Feature importance saved")
 
@@ -186,11 +181,7 @@ logger.info("\nModel Performance:")
 y_pred = model.predict(X_test)
 from sklearn.metrics import mean_absolute_error, r2_score
 
-# Import Tufte plotting utilities
 from pathlib import Path
-sys.path.insert(0, str(Path(__file__).parent.parent))
-from tda_utils import setup_tufte_plot, TufteColors
-
 mae = mean_absolute_error(y_test, y_pred)
 r2 = r2_score(y_test, y_pred)
 logger.info(f"  Test MAE: {mae:.2f} psig")
