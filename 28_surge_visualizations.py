@@ -24,12 +24,9 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import train_test_split
 
-import sys
-import os
 
 # Add parent directory to path to import plot_style
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from plot_style import set_tufte_defaults, apply_tufte_style, save_tufte_figure, COLORS
 
 
 logger.info("Blog 28: Surge and Overpressure Modeling - Visualizations")
@@ -190,7 +187,6 @@ y_pred = model.predict(X_test)
 from sklearn.metrics import mean_absolute_error, r2_score
 
 # Import Tufte plotting utilities
-import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from tda_utils import setup_tufte_plot, TufteColors
