@@ -32,9 +32,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from plot_style import set_tufte_defaults, apply_tufte_style, save_tufte_figure, COLORS
 
 
-logger.info("=" * 70)
 logger.info("Blog 28: Surge and Overpressure Modeling - Visualizations")
-logger.info("=" * 70)
 
 plt.rcParams['font.family'] = 'serif'
 
@@ -182,9 +180,7 @@ logger.info("✓ Feature importance saved")
 # ============================================================================
 # Summary Statistics
 # ============================================================================
-logger.info("\n" + "=" * 70)
-logger.info("All visualizations generated successfully!")
-logger.info("=" * 70)
+logger.info("=== All visualizations generated successfully! ===")
 logger.info("\nFiles created:")
 logger.info("  - 28_surge_vs_closure_time.png")
 logger.info("  - 28_surge_feature_importance.png")
