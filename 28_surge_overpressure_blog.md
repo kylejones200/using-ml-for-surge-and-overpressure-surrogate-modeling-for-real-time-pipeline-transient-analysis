@@ -14,8 +14,7 @@ This article demonstrates how to build a surrogate model that predicts peak over
 
 Pressure surges (water hammer, surge) occur when fluid velocity changes rapidly:
 
-**Joukowsky equation (simplified):**
-```
+Joukowsky equation (simplified):```
 ΔP = ρ × a × Δv
 ```
 
@@ -25,26 +24,22 @@ Where:
 - `a` = Acoustic wave speed (m/s)
 - `Δv` = Change in velocity (m/s)
 
-**Example:**  
-- Fluid: Crude oil (ρ = 850 kg/m³, a = 1,200 m/s)
+Example:- Fluid: Crude oil (ρ = 850 kg/m³, a = 1,200 m/s)
 - Flow velocity: 2.5 m/s → 0 m/s (complete stoppage)
-- ΔP = 850 × 1,200 × 2.5 = **2.55 MPa = 370 psi**
-
-For a pipeline operating at 180 psig, this surge brings peak pressure to **550 psig**—catastrophic if MAOP is 250 psig.
+- ΔP = 850 × 1,200 × 2.5 = 2.55 MPa = 370 psi
+For a pipeline operating at 180 psig, this surge brings peak pressure to 550 psig—catastrophic if MAOP is 250 psig.
 
 ### Why Full Simulation Doesn't Work for Real-Time Operations
 
-**Commercial transient simulators:**
-- **OLGA (Schlumberger):** 10-20 minutes per scenario
-- **PIPESIM (Schlumberger):** 8-15 minutes per scenario
-- **AFT Impulse:** 5-10 minutes per scenario
+Commercial transient simulators:- OLGA (Schlumberger): 10-20 minutes per scenario
+- PIPESIM (Schlumberger): 8-15 minutes per scenario
+- AFT Impulse: 5-10 minutes per scenario
 
-**Operators need answers in:**
-- **Emergency shutdown:** <5 seconds
-- **Operational planning:** <30 seconds
-- **Design what-if analysis:** <2 minutes
+Operators need answers in:- Emergency shutdown: <5 seconds
+- Operational planning: <30 seconds
+- Design what-if analysis: <2 minutes
 
-**Gap:** 3-4 orders of magnitude too slow
+Gap: 3-4 orders of magnitude too slow
 
 ### Why Operators Can't Rely on "Conservative Rules of Thumb"
 
@@ -69,24 +64,24 @@ Since real transient data is scarce (operators avoid surge events!), we generate
 ### Transient Physics Model (Simplified)
 
 The synthetic data generation function creates scenarios with varying input parameters:
-- **Linepack:** Relative to normal (0.6-1.4, dimensionless)
-- **Closure time:** Valve closure duration (0.2-10.0 seconds)
-- **Pump trip:** Binary flag (0=no trip, 1=trip occurred)
-- **Velocity:** Flow velocity (0.5-3.0 m/s)
-- **Elevation drop:** Net elevation change (−80 to +120 m)
-- **Temperature:** Fluid temperature (0-35°C)
+- Linepack: Relative to normal (0.6-1.4, dimensionless)
+- Closure time: Valve closure duration (0.2-10.0 seconds)
+- Pump trip: Binary flag (0=no trip, 1=trip occurred)
+- Velocity: Flow velocity (0.5-3.0 m/s)
+- Elevation drop: Net elevation change (−80 to +120 m)
+- Temperature: Fluid temperature (0-35°C)
 
 The peak overpressure calculation combines five physics-based components:
 
-1. **Joukowsky surge** - Inversely proportional to closure time: base_surge = 35 × velocity / (1 + closure_time / 2.0)
-2. **Static head contribution** - Elevation effects: static_head = 0.433 × (elevation_drop / 10.0) psi per 10m
-3. **Pump trip amplification** - Additional surge from pump failure: pump_effect = pump_trip × (12 + 6 × tanh(3 × (1.5 − velocity)))
-4. **Linepack effect** - Compressibility impact: linepack_effect = 8 × (linepack − 1.0)
-5. **Temperature effect** - Minor fluid property changes: temp_effect = 0.2 × temperature
+1. Joukowsky surge - Inversely proportional to closure time: base_surge = 35 × velocity / (1 + closure_time / 2.0)
+2. Static head contribution - Elevation effects: static_head = 0.433 × (elevation_drop / 10.0) psi per 10m
+3. Pump trip amplification - Additional surge from pump failure: pump_effect = pump_trip × (12 + 6 × tanh(3 × (1.5 − velocity)))
+4. Linepack effect - Compressibility impact: linepack_effect = 8 × (linepack − 1.0)
+5. Temperature effect - Minor fluid property changes: temp_effect = 0.2 × temperature
 
 (See Complete Implementation section for data generation code)
 
-**Generated output:** 5,000 scenarios with peak overpressure range: 178.3 - 298.7 psig
+Generated output: 5,000 scenarios with peak overpressure range: 178.3 - 298.7 psig
 
 ### Physics Validation
 
@@ -116,11 +111,10 @@ The Gradient Boosting model reveals which parameters drive surge magnitude. Flow
 
 The safe closure time calculator function creates a grid of closure times from 0.2 to 15 seconds, predicts peak overpressure for each closure time, and finds the minimum closure time where peak pressure stays below MAOP.
 
-**Example scenario:**
-- **Current velocity:** 2.2 m/s (from SCADA)
-- **Linepack:** 1.1 (slightly overpacked)
-- **Pump trip:** No
-- **MAOP limit:** 260 psig
+Example scenario:- Current velocity: 2.2 m/s (from SCADA)
+- Linepack: 1.1 (slightly overpacked)
+- Pump trip: No
+- MAOP limit: 260 psig
 
 The calculator determines a minimum safe closure time of 4.8 seconds with a peak pressure of 258.3 psig at that time. Instead of using a fixed "10-second rule," operators know they can safely close in 4.8 seconds, reducing emergency response time by 52%.
 
@@ -142,13 +136,12 @@ Current velocity determines the safe operating envelope. Real-time predictions e
 
 ### Challenge
 
-**System:** 24-inch refined products pipeline, 400 km length  
-**Operating pressure:** 220 psig nominal, 280 psig MAOP  
-**Flow rate:** Variable (0.8 - 2.8 m/s depending on demand)  
-**Emergency shutdowns:** 12-18 per year (pump trips, leak detection, manual)
+System: 24-inch refined products pipeline, 400 km length  
+Operating pressure: 220 psig nominal, 280 psig MAOP  
+Flow rate: Variable (0.8 - 2.8 m/s depending on demand)  
+Emergency shutdowns: 12-18 per year (pump trips, leak detection, manual)
 
-**Problem:**  
-- Existing procedure: "Close all valves in 10 seconds" (conservative fixed rule)
+Problem:- Existing procedure: "Close all valves in 10 seconds" (conservative fixed rule)
 - Result: 3 overpressure exceedances in 5 years (peak = 295 psig, 302 psig, 288 psig)
 - Consequence: PHMSA citations, integrity assessments, $1.8M compliance costs
 
@@ -158,25 +151,16 @@ The solution involved four key steps. First, generate training data with 10,000 
 
 ### Results After 24 Months
 
-**Pressure management:**
-- Emergency shutdowns: 15/year (similar frequency)
-- Overpressure exceedances: 3 in 5 years → **0 in 2 years** (100% elimination)
-- Average peak pressure: 285 psig → **248 psig** (37 psig reduction, 13% margin improvement)
+Pressure management:- Emergency shutdowns: 15/year (similar frequency)
+- Overpressure exceedances: 3 in 5 years → 0 in 2 years (100% elimination)
+- Average peak pressure: 285 psig → 248 psig (37 psig reduction, 13% margin improvement)
 
-**Operational efficiency:**
-- Average closure time: 10 seconds → **5.8 seconds** (42% faster emergency response)
+Operational efficiency:- Average closure time: 10 seconds → 5.8 seconds (42% faster emergency response)
 - False alarm shutdowns (conservative closures causing downstream issues): 6/year → 1/year (83% reduction)
 
-**Financial impact:**
-- Avoided PHMSA fines: **$600K/year**
-- Avoided integrity assessments: **$1.2M/year**
-- Faster emergency response → reduced product loss: **$400K/year**
-- **Total annual savings: $2.2M**
-- System cost: $85K (model development + SCADA integration)
-- **ROI: 26×**
-
-**Regulatory approval:**
-- PHMSA accepted surrogate model as justification for "dynamic closure time" procedure
+Financial impact:- Avoided PHMSA fines: $600K/year- Avoided integrity assessments: $1.2M/year- Faster emergency response → reduced product loss: $400K/year- Total annual savings: $2.2M- System cost: $85K (model development + SCADA integration)
+- ROI: 26×
+Regulatory approval:- PHMSA accepted surrogate model as justification for "dynamic closure time" procedure
 - Operator cited as best practice example in industry webinars
 
 ---
@@ -187,19 +171,19 @@ The solution involved four key steps. First, generate training data with 10,000 
 
 Detect pump trips automatically from SCADA signatures (simultaneous pressure drop + flow drop) and adjust closure strategy. If pump trip is detected, the model uses the pump_trip=1 flag to predict extended closure times that avoid surge amplification.
 
-**Logic:** Check for dpdt < −5 and dqdt < −0.2 over a 10-second window to trigger pump trip detection.
+Logic: Check for dpdt < −5 and dqdt < −0.2 over a 10-second window to trigger pump trip detection.
 
 ### 2. Multi-Segment Pipeline Networks
 
-Extend to pipelines with multiple valves and segments by modeling surge propagation through the network. This requires capturing network topology, which can be done using **Graph Neural Networks (GNN)** with Graph Convolutional layers (GCNConv) where each node represents a valve location and edges represent pipe segments.
+Extend to pipelines with multiple valves and segments by modeling surge propagation through the network. This requires capturing network topology, which can be done using Graph Neural Networks (GNN) with Graph Convolutional layers (GCNConv) where each node represents a valve location and edges represent pipe segments.
 
-**Output:** Peak pressure prediction at each valve location given closure actions at multiple points.
+Output: Peak pressure prediction at each valve location given closure actions at multiple points.
 
 ### 3. Uncertainty Quantification
 
 Provide confidence intervals on predictions by training an ensemble of models with bootstrap sampling (50 estimators). For each test scenario, compute mean prediction and 95% confidence interval from the ensemble distribution.
 
-**Example output:** "Prediction: 245.3 psig [95% CI: 242.1 - 248.6]"
+Example output: "Prediction: 245.3 psig [95% CI: 242.1 - 248.6]"
 
 ### 4. Online Learning with Historical Data
 
@@ -268,10 +252,10 @@ Model accuracy achieves test MAE under 2 psi (well within operational tolerances
 
 ## Further Reading
 
-- **Water Hammer Theory:** [en.wikipedia.org/wiki/Water_hammer](https://en.wikipedia.org/wiki/Water_hammer)
-- **ASME B31.4 (Liquid Pipeline Code):** [asme.org/codes-standards/find-codes-standards/b31-4-pipeline-transportation-systems-liquids-hydrocarbons](https://www.asme.org/codes-standards/)
-- **Gradient Boosting:** [scikit-learn.org/stable/modules/ensemble.html#gradient-boosting](https://scikit-learn.org/stable/modules/ensemble.html)
-- **Surrogate Modeling:** [en.wikipedia.org/wiki/Surrogate_model](https://en.wikipedia.org/wiki/Surrogate_model)
+- Water Hammer Theory: [en.wikipedia.org/wiki/Water_hammer](https://en.wikipedia.org/wiki/Water_hammer)
+- ASME B31.4 (Liquid Pipeline Code): [asme.org/codes-standards/find-codes-standards/b31-4-pipeline-transportation-systems-liquids-hydrocarbons](https://www.asme.org/codes-standards/)
+- Gradient Boosting: [scikit-learn.org/stable/modules/ensemble.html#gradient-boosting](https://scikit-learn.org/stable/modules/ensemble.html)
+- Surrogate Modeling: [en.wikipedia.org/wiki/Surrogate_model](https://en.wikipedia.org/wiki/Surrogate_model)
 
 ---
 
@@ -767,4 +751,4 @@ print('✓ Visualization saved')
 
 ---
 
-**About This Analysis**: All code is functional and tested on Python 3.10+. The surrogate modeling methodology is validated against 2 years of operational data from a 400 km refined products pipeline. For consulting inquiries, reach out via LinkedIn.
+About This Analysis: All code is functional and tested on Python 3.10+. The surrogate modeling methodology is validated against 2 years of operational data from a 400 km refined products pipeline. For consulting inquiries, reach out via LinkedIn.

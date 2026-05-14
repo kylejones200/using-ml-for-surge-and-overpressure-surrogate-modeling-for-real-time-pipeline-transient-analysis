@@ -13,7 +13,7 @@ This article explores using a surrogate model to predicts peak overpressure in o
 
 Let's start by considering what causes pressure surges in pipelines. Pressure surges (water hammer, surge) occur when fluid velocity changes rapidly:
 
-**Joukowsky equation (simplified):**
+Joukowsky equation (simplified):
 
 ``` 
 ΔP = ρ × a × Δv
@@ -21,15 +21,15 @@ Let's start by considering what causes pressure surges in pipelines. Pressure su
 
 Where: `ΔP` = Pressure rise (Pa) `ρ` = Fluid density (kg/m³) `a` = Acoustic wave speed (m/s) `Δv` = Change in velocity (m/s)
 
-**Example:**
+Example:
 
 - Fluid: Crude oil (ρ = 850 kg/m³, a = 1,200 m/s)
 - Flow velocity: 2.5 m/s → 0 m/s (complete stoppage)
-- ΔP = 850 × 1,200 × 2.5 = **2.55**
+- ΔP = 850 × 1,200 × 2.5 = 2.55
 
-**MPa = 370 psi**
+MPa = 370 psi
 
-For a pipeline operating at 180 psig, this surge brings peak pressure to **550 psig** --- catastrophic if MAOP is 250 psig.
+For a pipeline operating at 180 psig, this surge brings peak pressure to 550 psig --- catastrophic if MAOP is 250 psig.
 
 ### Why Operators Can't Rely on "Conservative Rules of Thumb"
 Traditional approach: *"Never close valves faster than 10 seconds"*
@@ -106,7 +106,7 @@ print(f'Generated {len(df_train):,} scenarios')
 print(f'Peak overpressure range: {df_train["peak_overpress_psig"].min():.1f} - {df_train["peak_overpress_psig"].max():.1f} psig')
 ```
 
-**Output:**
+Output:
 
 ``` 
 Generated 5,000 scenarios
@@ -186,7 +186,7 @@ print(f'Minimum safe closure time: {safe_time:.1f} seconds')
 print(f'Peak pressure at safe time: {all_peaks[int(safe_time*10)]:.1f} psig')
 ```
 
-**Output:**
+Output:
 
 ``` 
 Current velocity: 2.2 m/s
