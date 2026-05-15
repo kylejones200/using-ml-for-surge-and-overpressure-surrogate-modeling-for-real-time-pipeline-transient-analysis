@@ -363,9 +363,8 @@ def detect_pump_trip(pressure_trace, flow_trace, window=10):
     if dpdt < -5 and dqdt < -0.2:  # Thresholds from historical data
         return True
     return False
-```
 
-``` 
+
 # If pump trip detected, use longer closure time to avoid surge amplification
 if detect_pump_trip(recent_pressure, recent_flow):
     safe_closure_time = predict_safe_closure_time(
@@ -405,9 +404,8 @@ Provide confidence intervals on predictions:
 
 ```python
 from sklearn.ensemble import GradientBoostingRegressor
-```
 
-``` 
+
 # Train ensemble of models with bootstrap sampling
 n_estimators = 50
 predictions = []
