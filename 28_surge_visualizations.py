@@ -1,6 +1,4 @@
 import signalplot
-import sys
-import os
 
 import logging
 logging.basicConfig(
@@ -180,7 +178,6 @@ logger.info("\nModel Performance:")
 y_pred = model.predict(X_test)
 from sklearn.metrics import mean_absolute_error, r2_score
 
-from pathlib import Path
 np.random.seed(2025)
 mae = mean_absolute_error(y_test, y_pred)
 r2 = r2_score(y_test, y_pred)
