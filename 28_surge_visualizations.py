@@ -33,7 +33,6 @@ logger.info("Blog 28: Surge and Overpressure Modeling - Visualizations")
 # ============================================================================
 logger.info("\nGenerating synthetic transient scenarios...")
 
-np.random.seed(2025)
 N = 5000
 
 linepack = np.random.uniform(0.6, 1.4, N)
@@ -182,6 +181,7 @@ y_pred = model.predict(X_test)
 from sklearn.metrics import mean_absolute_error, r2_score
 
 from pathlib import Path
+np.random.seed(2025)
 mae = mean_absolute_error(y_test, y_pred)
 r2 = r2_score(y_test, y_pred)
 logger.info(f"  Test MAE: {mae:.2f} psig")
